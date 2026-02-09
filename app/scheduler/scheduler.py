@@ -1,48 +1,69 @@
-import json, datetime, os
 
-TEMPLATE = "/app/scheduler/schedule_template.json"
-OUTPUT_SCHEDULE = "/app/scheduler/daily_schedule.json"
-PLAYLIST_FILE = "/app/playlist.txt"
-MEDIA_DIR = "/media/"
+import json, datetime
 
-def generate_daily_schedule():
+TEMPLATE = '/app/scheduler/schedule_template.json'
+OUTPUT = '/app/scheduler/daily_schedule.json'
+PLAYLIST = '/app/playlist.txt'
+MEDIA_DIR = '/media/'
+
+# Generate per-file ad break map
+def generate_breaks(duration, rules):
+    breaks = []
+    if rules.get('pre_roll'):
+        breaks.append({"offset": 0, "duration": rules['ad_duration']})
+    pos = rules['midroll_interval']
+    while pos < duration - rules['min_tail']:
+        breaks.append({"offset": pos, "duration": rules['ad_duration']})
+        pos += rules['midroll_interval']
+    return breaks
+
+
+def generate_schedule():
     with open(TEMPLATE) as f:
         template = json.load(f)
 
-    slots = template["slots"]
-    ad_cfg = template["ad_breaks"]
+    slots = template['slots']
+    rules = template['ad_rules']
 
-    start = datetime.datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    current = start
+    start_time = datetime.datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    current = start_time
 
     playlist = []
-    ad_breaks = []
+    global_breaks = []
 
     for slot in slots:
+        # Per-file ad breaks
+        file_breaks = generate_breaks(slot['duration'], rules)
+
         playlist.append({
-            "file": slot["file"],
-            "start": current.isoformat() + "Z",
-            "duration": slot["duration"]
+            "file": slot['file'],
+            "start": current.isoformat() + 'Z',
+            "duration": slot['duration'],
+            "ad_breaks": file_breaks
         })
 
-        if ad_cfg["mid_roll_interval"]:
-            next_break = current + datetime.timedelta(seconds=ad_cfg["mid_roll_interval"])
-            ad_breaks.append({
-                "offset": (next_break - start).total_seconds(),
-                "duration": ad_cfg["ad_duration"]
+        # Convert file-relative offsets to global timeline
+        for b in file_breaks:
+            global_offset = (current - start_time).total_seconds() + b['offset']
+            global_breaks.append({
+                "offset": global_offset,
+                "duration": b['duration']
             })
 
-        current += datetime.timedelta(seconds=slot["duration"])
+        current += datetime.timedelta(seconds=slot['duration'])
 
-    with open(OUTPUT_SCHEDULE, "w") as out:
-        json.dump({"playlist": playlist, "breaks": ad_breaks}, out, indent=2)
+    result = {"playlist": playlist, "breaks": global_breaks}
 
-    with open(PLAYLIST_FILE, "w") as p:
-        for item in playlist:
-            p.write(f"file {MEDIA_DIR}{item['file']}
+    with open(OUTPUT, 'w') as f:
+        json.dump(result, f, indent=2)
+
+    # Write playlist for FFmpeg
+    with open(PLAYLIST, 'w') as p:
+        for slot in playlist:
+            p.write(f"file {MEDIA_DIR}{slot['file']}
 ")
 
-    print("[SCHEDULER] Daily schedule generated.")
 
-if __name__ == "__main__":
-    generate_daily_schedule()
+if __name__ == '__main__':
+    generate_schedule()
+    print('[SCHEDULER] Daily schedule generated.')
