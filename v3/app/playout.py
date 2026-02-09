@@ -9,7 +9,7 @@ ffmpeg_cmd = [
     '-c:a', 'aac', '-ar', '48000', '-b:a', '160k',
     '-hls_time', '6', '-hls_list_size', '10',
     '-hls_flags', 'independent_segments+program_date_time',
-    '-master_pl_name', '/output/master.m3u8',
+    '-master_pl_name', 'master.m3u8',
     '-hls_segment_filename', '/output/seg_%06d.ts',
     '/output/live.m3u8'
 ]

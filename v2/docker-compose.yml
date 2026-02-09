@@ -18,3 +18,17 @@ services:
     command: python3 /vast/vast_server.py
     ports:
       - "9090:9090"
+
+  # NEW: nginx sidecar to serve /output over HTTP
+  nginx:
+    image: nginx:alpine
+    container_name: hls_static
+    depends_on:
+      - media_to_live      # ensure FFmpeg starts alongside
+    ports:
+      - "8088:80"          # expose on host http://localhost:8088
+    volumes:
+      - ./output:/usr/share/nginx/html:ro   # serve HLS files read-only
+      - ./nginx:/etc/nginx/conf.d:ro
+    # If you want logs on your host, uncomment:
+    # - ./logs/nginx:/var/log/nginx

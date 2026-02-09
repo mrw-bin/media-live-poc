@@ -1,7 +1,7 @@
 import base64
 
 def generate_scte35(duration):
-    if not 0 <= duration <= 255:
-        raise ValueError("duration must be 0..255")
-    cue = b"\xFC0%" + duration.to_bytes(1, "big")
-    return base64.b64encode(cue).decode("utf-8")
+    duration_int = int(round(duration))
+    byte_len = max(1, (duration_int.bit_length() + 7) // 8)
+    cue = b"\xFC0%" + duration_int.to_bytes(byte_len, "big")
+    return cue.decode("latin1")

@@ -1,37 +1,27 @@
 {
   "playlist": [
     {
+      "file": "doc1.mp4",
+      "duration": 57.7
+    },
+    {
+      "file": "news1.mp4",
+      "duration": 57.7
+    },
+    {
       "file": "show1_ep1.mp4",
-      "start": "2026-02-09T00:00:00Z",
-      "duration": 1800,
-      "ad_breaks": [
-        {
-          "offset": 0,
-          "duration": 60
-        },
-        {
-          "offset": 600,
-          "duration": 60
-        },
-        {
-          "offset": 1200,
-          "duration": 60
-        }
-      ]
+      "duration": 57.7
+    },
+    {
+      "file": "show1_ep2.mp4",
+      "duration": 57.7
     }
   ],
   "breaks": [
     {
-      "offset": 0,
-      "duration": 60
-    },
-    {
-      "offset": 600,
-      "duration": 60
-    },
-    {
-      "offset": 1200,
-      "duration": 60
+      "offset": 115.4,
+      "duration": 60.0
     }
-  ]
+  ],
+  "total_duration": 230.8
 }
