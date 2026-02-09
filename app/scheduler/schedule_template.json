@@ -11,14 +11,9 @@
       "duration": 1800
     },
     {
-      "title": "News Update",
+      "title": "News",
       "file": "news1.mp4",
       "duration": 900
-    },
-    {
-      "title": "Documentary",
-      "file": "doc1.mp4",
-      "duration": 3600
     }
   ],
   "ad_rules": {

@@ -1,221 +1,124 @@
 ﻿
-# 🎬 FAST Channel POC – Complete Repo (fast-channel-updated)
-### 24/7 FAST Playout • Advanced Scheduler (Per‑File Ad Breaks) • SCTE‑35 • HLS • VAST Ad Server • Samsung TV Plus–Ready
+# 🎬 FAST Channel POC – Hybrid Scheduler Edition
+### 24/7 FAST Playout • Hybrid Scheduler (Daily + Real-Time Updates) • SCTE‑35 • HLS • VAST • Samsung SSAI Ready
 
-This repository provides a **fully updated, production‑aligned FAST channel pipeline**, combining the strengths of the original Media‑to‑Live POC and the improved FAST channel architecture. It includes:
+This repository contains a complete FAST channel playout system with:
 
-- ✔️ **24/7 FAST channel playout**
-- ✔️ **Advanced scheduler with per‑file ad break mapping**
-- ✔️ **Dynamic file ingestion**
-- ✔️ **Automatic SCTE‑35 ad insertion (EXT‑X‑DATERANGE)**
-- ✔️ **Live HLS output (TS segments)**
-- ✔️ **Integrated VAST mock server**
-- ✔️ **Samsung SSAI‑ready feed**
-- ✔️ **Fully Dockerized setup**
+- Full **24-hour daily schedule generation**
+- **Hybrid scheduler** that also ingests **new media files in real-time**
+- Per-file ad break logic (pre-roll, mid-roll, tail rules)
+- Global break offsets suitable for SSAI (e.g., Samsung TV Plus)
+- FFmpeg-based HLS live packaging
+- VAST server for SSAI ad decisioning (realistic VAST 4.0-style response)
+- Simple HTTP server to serve `/output` on port **8080**
 
-This repo is suitable for POCs, partner onboarding, FAST QA validation, and forming the foundation of a scalable production FAST channel.
-
----
-# 📚 Table of Contents
-1. [Overview](#overview)
-2. [Features](#features)
-3. [Architecture](#architecture)
-4. [Advanced Scheduler Logic](#advanced-scheduler-logic)
-5. [Installation](#installation)
-6. [Running the System](#running-the-system)
-7. [Adding Media While Running](#adding-media-while-running)
-8. [Directory Structure](#directory-structure)
-9. [HLS Output](#hls-output)
-10. [Samsung TV Plus SSAI Integration](#samsung-tv-plus-ssai-integration)
-11. [Future Improvements](#future-improvements)
-12. [License](#license)
+> ⚠️ **Note:** This POC computes ad-breaks and timing; it does not force FFmpeg to write `EXT-X-DATERANGE` automatically. In many production stacks the **packager** (e.g., MediaPackage/Unified/Nimble) maps SCTE‑35 to HLS tags. Here, the hybrid scheduler prepares the break plan (`daily_schedule.json`) and logs upcoming breaks. You can replace FFmpeg with a packager of choice to emit real DATERANGEs.
 
 ---
-# 🌐 Overview
-This FAST channel solution creates a **continuous live HLS stream** that simulates a full 24/7 linear channel. It includes:
-
-- Dynamic playout of `.mp4` files
-- Ad‑break signalling using SCTE‑35
-- A scheduler that builds a 24‑hour programming grid
-- A VAST server that can be consumed by Samsung TV Plus SSAI
-- FFmpeg‑based HLS packaging
-
-It is suitable for validating live ingest, SSAI ad‑stitching, and FAST programming logic before scaling to production.
-
----
-# ✨ Features
-
-### 🎞️ Continuous 24/7 Playout
-The system runs indefinitely and loops through scheduled media, generating ad opportunities without interruption.
-
-### 📅 Advanced Scheduler (NEW)
-The scheduler now:
-- Generates **unique ad breaks per file**
-- Supports **pre‑roll**, **mid‑roll**, and **tail‑gap rules**
-- Builds a complete 24‑hour FAST schedule
-- Produces file‑specific ad maps
-- Converts file‑relative ad offsets to **global channel offsets**
-- Creates a live `playlist.txt` for FFmpeg
-
-### 🛰️ SCTE‑35 Ad Break Signaling
-Breaks are inserted using HLS `EXT‑X‑DATERANGE` tags.
-
-Example:
-```m3u8
-#EXT-X-DATERANGE:ID="ad-123",
-  CLASS="se.scte35",
-  START-DATE="2026-02-09T10:02:00Z",
-  DURATION=60.0,
-  SCTE35-OUT="base64payload..."
+## 📁 Repository Structure
 ```
-
-### 📡 VAST Mock Server Included
-Available at:
-```
-http://localhost:9090/vast
-```
-Used by Samsung SSAI or other ad‑decisioning systems.
-
-### 🔄 Dynamic Content Injection
-Drop new `.mp4` files into `/media` to immediately extend the playout queue.
-
-### 🐳 Fully Dockerized
-No dependencies needed on your machine.
-
-```bash
-docker-compose up
-```
-
----
-# 🧠 Advanced Scheduler Logic
-This version introduces a **true FAST‑grade scheduler**, addressing the limitations of global‑interval ad breaks.
-
-### ✔ Per‑File Ad Map Generation
-For each media file, breaks are computed as:
-- **Pre‑roll** (optional)
-- **Mid‑rolls every X seconds**
-- **Avoid last N seconds** (tail)
-
-### ✔ Flexible Rule Set (Defined in schedule_template.json)
-```json
-"ad_rules": {
-  "pre_roll": true,
-  "midroll_interval": 600,
-  "ad_duration": 60,
-  "min_tail": 300
-}
-```
-
-### ✔ File‑Relative → Global Timeline Conversion
-If a media file begins 7200 seconds into the 24‑hour schedule, and has a mid‑roll at 600 seconds, the global offset becomes:
-```
-7200 + 600 = 7800 seconds
-```
-
-### ✔ daily_schedule.json New Structure
-```json
-{
-  "playlist": [
-    {
-      "file": "show1.mp4",
-      "start": "2026-02-09T00:00:00Z",
-      "duration": 1800,
-      "ad_breaks": [
-        {"offset": 0, "duration": 60},
-        {"offset": 600, "duration": 60}
-      ]
-    }
-  ],
-  "breaks": [
-    {"offset": 0, "duration": 60},
-    {"offset": 600, "duration": 60}
-  ]
-}
-```
-
----
-# ⚙️ Installation
-```bash
-git clone <your repo>
-cd fast-channel-updated
-docker-compose up
-```
-
-Place `.mp4` files in:
-```
-media/
-```
-
----
-# ▶️ Running the System
-When started, Docker runs:
-1. The **scheduler** → generates daily FAST schedule
-2. The **watcher** → detects new media
-3. The **playout engine** → drives FFmpeg
-4. The **VAST server** → serves ad responses
-
-HLS output appears in:
-```
-output/live.m3u8
-```
-
----
-# 📥 Adding Media While Running
-Simply drop new `.mp4` files into:
-```
-media/
-```
-The watcher will automatically append them to the playlist.
-
----
-# 📁 Directory Structure
-```
-fast-channel-updated/
+media-live-poc/
 │
 ├── app/
-│   ├── playout.py
-│   ├── watcher.py
-│   ├── playlist.txt
-│   ├── scte.py
+│   ├── playout.py                 # Starts FFmpeg and logs scheduled breaks
+│   ├── watcher.py                 # Watches /media; calls hybrid scheduler for new files
+│   ├── playlist.txt               # FFmpeg concat playlist (live-updated)
+│   ├── scte.py                    # (POC) SCTE-35 payload generator helper
 │   └── scheduler/
-│       ├── scheduler.py
-│       ├── schedule_template.json
-│       └── daily_schedule.json
+│       ├── __init__.py
+│       ├── hybrid_scheduler.py    # Real-time add-file scheduling + global break calc
+│       ├── scheduler.py           # Daily 24h schedule generator
+│       ├── schedule_template.json # Input rules
+│       └── daily_schedule.json    # Channel plan + global breaks (live-updated)
 │
 ├── vast/
-│   ├── vast_server.py
+│   ├── vast_server.py             # Realistic VAST endpoint
 │   └── example_vast.xml
 │
-├── media/
-├── output/
+├── media/                         # Drop .mp4 files here (detected live)
+├── output/                        # HLS output (served on :8080)
 ├── docker-compose.yml
 ├── Dockerfile
 └── README.md
 ```
 
 ---
-# 📡 Samsung TV Plus SSAI Integration
-Samsung requires:
-- HLS input with SCTE‑35 ad markers
-- A VAST URL (provided by this repo)
+## 🧠 Hybrid Scheduler Logic
+**Two modes:**
 
-They will:
-1. Pull your origin HLS stream
-2. Detect SCTE‑35 markers
-3. Call your VAST endpoint
-4. Stitch ads dynamically
+### 1) Daily Schedule Generation
+Creates a 24‑hour FAST programming grid using `schedule_template.json`.
+- Generates per‑file ad maps
+- Computes **global** offsets (seconds from channel start)
+- Writes `daily_schedule.json` and `playlist.txt`
 
-This repo satisfies all Samsung onboarding prerequisites.
+### 2) Real-Time Media Ingestion
+When a new `.mp4` appears:
+- `watcher.py` triggers `hybrid_scheduler.add_new_file()`
+- The scheduler:
+  - Calculates ad breaks for that file
+  - Converts file-relative → global offsets
+  - Appends to `daily_schedule.json`
+  - Updates `playlist.txt`
 
----
-# 🚀 Future Improvements
-- CMAF/fMP4 support
-- Multi‑audio & subtitles
-- Advanced SCTE‑35 splice_insert
-- EPG (XMLTV / Gracenote / Samsung) generator
-- Promo & bumper insertion system
-- SSAI emulator environment
+> Result: **New media files get ad-breaks** without restart.
 
 ---
-# 📄 License
+## ⚙️ Installation & Run
+```bash
+git clone <your-repo>
+cd fast-channel-hybrid
+# Add some .mp4 files to ./media first for immediate playout
+docker-compose up
+```
+
+Open the HLS output in a player:
+```
+http://localhost:8080/live.m3u8
+```
+
+VAST endpoint (for SSAI tests):
+```
+http://localhost:9090/vast
+```
+
+---
+## 🔧 Config: `schedule_template.json`
+```json
+{
+  "slots": [
+    { "title": "Show1 Ep1", "file": "show1_ep1.mp4", "duration": 1800 },
+    { "title": "Show1 Ep2", "file": "show1_ep2.mp4", "duration": 1800 },
+    { "title": "News",       "file": "news1.mp4",     "duration": 900  }
+  ],
+  "ad_rules": {
+    "pre_roll": true,
+    "midroll_interval": 600,
+    "ad_duration": 60,
+    "min_tail": 300
+  }
+}
+```
+- **pre_roll**: Insert ad break at offset 0 of each file
+- **midroll_interval**: Mid-roll cadence in seconds
+- **ad_duration**: Intended duration per break (POC)
+- **min_tail**: Keep last N seconds ad-free
+
+---
+## 📡 Samsung SSAI Integration Notes
+- Provide your origin HLS URL to Samsung (this POC serves `/output` at port 8080)
+- Provide your **VAST URL** (`/vast`)
+- This POC prepares the **ad opportunity plan** in `daily_schedule.json`. To output **real `EXT‑X‑DATERANGE`** tags, use a production packager that maps SCTE‑35 → HLS markers, or extend `playout.py` to post-process manifests.
+
+---
+## 🛠 Future Extensions
+- Swap FFmpeg for a packager that emits `EXT‑X‑DATERANGE`
+- CMAF/fMP4 output
+- Auto-duration detection via `ffprobe`
+- EPG (XMLTV / vendor formats)
+- Multi-audio, captions, slates
+- SSAI emulator
+
+---
+## 📄 License
 MIT License.

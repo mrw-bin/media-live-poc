@@ -1,16 +1,20 @@
-<VAST version="3.0">
-  <Ad id="example">
+
+<VAST version="4.0">
+  <Ad id="sample">
     <InLine>
+      <AdSystem>FASTPOC</AdSystem>
+      <AdTitle>Sample Test Ad</AdTitle>
       <Creatives>
-        <Creative>
+        <Creative id="cr1" sequence="1">
           <Linear>
-            <Duration>00:00:15</Duration>
+            <Duration>00:00:30</Duration>
             <MediaFiles>
-              <MediaFile type="video/mp4">https://cdn.example.com/ad15.mp4</MediaFile>
+              <MediaFile delivery="progressive" type="video/mp4">https://cdn.example.com/ads/sample30.mp4</MediaFile>
             </MediaFiles>
           </Linear>
         </Creative>
       </Creatives>
+      <Impression><![CDATA[https://tracker.example.com/impression]]></Impression>
     </InLine>
   </Ad>
 </VAST>

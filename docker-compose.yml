@@ -1,4 +1,5 @@
-version: "3.8"
+
+version: '3.8'
 services:
   media_to_live:
     build: .
@@ -10,7 +11,7 @@ services:
     ports:
       - "8080:8080"
     command: >
-      sh -c "python3 /app/scheduler/scheduler.py && python3 /app/watcher.py & python3 /app/playout.py"
+      sh -c "python3 /app/scheduler/scheduler.py && python3 -m http.server 8080 -d /output & python3 /app/watcher.py & python3 /app/playout.py"
 
   vast:
     build: .
