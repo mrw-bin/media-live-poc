@@ -1,0 +1,30 @@
+{
+  "slots": [
+    {
+      "title": "Show1 Ep1",
+      "file": "show1_ep1.mp4",
+      "duration": 1800
+    },
+    {
+      "title": "Show1 Ep2",
+      "file": "show1_ep2.mp4",
+      "duration": 1800
+    },
+    {
+      "title": "News Update",
+      "file": "news1.mp4",
+      "duration": 900
+    },
+    {
+      "title": "Documentary",
+      "file": "doc1.mp4",
+      "duration": 3600
+    }
+  ],
+  "ad_rules": {
+    "pre_roll": true,
+    "midroll_interval": 600,
+    "ad_duration": 60,
+    "min_tail": 300
+  }
+}

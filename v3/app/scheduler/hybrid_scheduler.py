@@ -40,8 +40,7 @@ def _save_daily(data):
 def _update_playlist(playlist):
     with open(PLAYLIST, 'w') as f:
         for slot in playlist:
-            f.write(f"file {MEDIA_DIR}{slot['file']}
-")
+            f.write(f"file {MEDIA_DIR}{slot['file']}")
 
 
 def add_new_file(filename, duration, rules=None):

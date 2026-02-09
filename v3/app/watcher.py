@@ -9,10 +9,8 @@ known = set(os.listdir(MEDIA_DIR))
 
 def append_to_playlist(fname):
     with open(PLAYLIST, 'a') as p:
-        p.write(f"file {MEDIA_DIR}/{fname}
-")
+        p.write(f"file {MEDIA_DIR}/{fname}")
     print(f"[WATCHER] Added to playlist: {fname}")
-
 while True:
     current = set(os.listdir(MEDIA_DIR))
     new_files = current - known

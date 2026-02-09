@@ -1,0 +1,20 @@
+version: "3.8"
+services:
+  media_to_live:
+    build: .
+    container_name: media_to_live
+    volumes:
+      - ./app:/app
+      - ./media:/media
+      - ./output:/output
+    ports:
+      - "8080:8080"
+    command: >
+      sh -c "python3 /app/scheduler/scheduler.py && python3 /app/watcher.py & python3 /app/playout.py"
+
+  vast:
+    build: .
+    container_name: vast_server
+    command: python3 /vast/vast_server.py
+    ports:
+      - "9090:9090"
